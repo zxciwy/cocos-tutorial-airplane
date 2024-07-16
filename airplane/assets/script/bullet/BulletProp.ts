@@ -19,6 +19,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('BulletProp')
 export class BulletProp extends Component {
+    private _propPower = 1;
     private _propSpeed = 0.3;
     private _propXSpeed = 0.3;
     private _gameManager: GameManager = null;
@@ -53,6 +54,16 @@ export class BulletProp extends Component {
         this._gameManager = gameManager;
         this._propSpeed = speed;
     }
+
+    // private _onTriggerEnter(event: ITriggerEvent){
+    //     const name = event.selfCollider.node.name;
+    //     if(name === 'bulletH'){
+    //         this._gameManager.changeBulletType(Constant.BulletPropType.BULLET_H);
+    //     } else if (name === 'bulletS') {
+    //         this._gameManager.changeBulletType(Constant.BulletPropType.BULLET_S);
+    //     } else {
+    //         this._gameManager.changeBulletType(Constant.BulletPropType.BULLET_M);
+    //     }
 
     private _onTriggerEnter(event: ITriggerEvent){
         const name = event.selfCollider.node.name;

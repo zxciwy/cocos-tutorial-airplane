@@ -27,7 +27,7 @@ export class EnemyPlane extends Component {
     private _enemySpeed = 0;
     private _needBullet = false;
     private _gameManager: GameManager = null;
-
+ 
     private _currCreateBulletTime = 0;
 
     onEnable () {

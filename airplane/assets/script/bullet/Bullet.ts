@@ -18,6 +18,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('Bullet')
 export class Bullet extends Component {
+    private _bulletPower = 1; //cece:1~3
     private _bulletSpeed = 0;
     private _direction = Constant.Direction.MIDDLE;
     private _isEnemyBullet = false;
@@ -46,10 +47,15 @@ export class Bullet extends Component {
         } else {
             moveLength = pos.z - this._bulletSpeed;
             if(this._direction === Constant.Direction.LEFT){
-                this.node.setPosition(pos.x - this._bulletSpeed * 0.2, pos.y, moveLength);
+                this.node.setPosition(pos.x - this._bulletSpeed * 0.1, pos.y, moveLength);
             } else if(this._direction === Constant.Direction.RIGHT){
+                this.node.setPosition(pos.x + this._bulletSpeed * 0.1, pos.y, moveLength);
+            } 
+            else if(this._direction === Constant.Direction.LEFT_2){
+                this.node.setPosition(pos.x - this._bulletSpeed * 0.2, pos.y, moveLength);
+            } else if(this._direction === Constant.Direction.RIGHT_2){
                 this.node.setPosition(pos.x + this._bulletSpeed * 0.2, pos.y, moveLength);
-            } else{
+            }else{
                 this.node.setPosition(pos.x, pos.y, moveLength);
             }
 

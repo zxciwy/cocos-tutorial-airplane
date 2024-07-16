@@ -90,9 +90,9 @@ export class GameManager extends Component {
     private _isShooting = false;
     private _currCreateEnemyTime = 0;
     private _combinationInterval = Constant.Combination.PLAN1;
-    private _bulletType = Constant.BulletPropType.BULLET_M;
+    private _bulletType = Constant.BulletPropType.BULLET_M; //private _bulletType = this.playerPlane._selfBulletType;// cece:初始值需要与SelfPlane的BulletType的初始值一致，但是这样会报错。因为PlayerPlane只声明了还真没有初始化？
     private _score = 0;
-
+    
 
     start () {
         this._init();
@@ -111,11 +111,14 @@ export class GameManager extends Component {
         this._currShootTime += deltaTime;
         if(this._isShooting && this._currShootTime > this.shootTime){
             if (this._bulletType === Constant.BulletPropType.BULLET_H) {
+                this.shootTime = 0.3;//cece:最前面的定义时的0.3会被界面设置的值取代，这里暂时赋值一个具体的值。赋值的一个目的是把M子弹改变的发射频率重新赋值回来。待优化。
                 this.createPlayerBulletH();
             } else if (this._bulletType === Constant.BulletPropType.BULLET_S) {
-                this.createPlayerBulletS();
+                this.shootTime = 0.3;//cece
+                this.createPlayerBulletS();                
             } else {
-                this.createPlayerBulletM();
+                this.shootTime = 0.3;//cece
+                this.createPlayerBulletM();                
             }
 
             const name = 'bullet' + (this._bulletType % 2 + 1);
@@ -162,6 +165,7 @@ export class GameManager extends Component {
         this._combinationInterval = Constant.Combination.PLAN1;
         this._bulletType = Constant.BulletPropType.BULLET_M;
         this.playerPlane.node.setPosition(0, 0, 15);
+        this.playerPlane._selfBulletPower = Constant.BulletPropPower.LEVEL_1;//cece：重置子弹level;
         this._score = 0;
     }
 
@@ -180,6 +184,7 @@ export class GameManager extends Component {
         this._combinationInterval = Constant.Combination.PLAN1;
         this._bulletType = Constant.BulletPropType.BULLET_M;
         this.playerPlane.node.setPosition(0, 0, 15);
+        this.playerPlane._selfBulletPower = Constant.BulletPropPower.LEVEL_1;//cece:重置子弹level;
     }
 
     public gameOver(){
@@ -205,24 +210,65 @@ export class GameManager extends Component {
         bullet.setPosition(pos.x, pos.y, pos.z - 7);
         const bulletComp = bullet.getComponent(Bullet);
         bulletComp.show(this.bulletSpeed, false);
+
+        if(this.playerPlane._selfBulletPower===2)
+            {
+                this.shootTime = this.shootTime/2.0;//cece: 
+                console.log('bulletM(power2),shoottime: ',this.shootTime);
+                bulletComp.show(this.bulletSpeed, false);
+            } 
+            if(this.playerPlane._selfBulletPower ===3)
+            {   
+                this.shootTime = this.shootTime/3.0;//cece: 
+                console.log('bulletM(power3),shoottime: ',this.shootTime);
+                bulletComp.show(this.bulletSpeed*2, false);//cece: bulletSpeed不会被别的子弹继承使用，但是ShootTime会。why?
+               // this.shootTime = temp_shootTime;
+            }
+
     }
 
     public createPlayerBulletH(){
+        console.log('forBulletH: shoot Time: ',this._currShootTime);
         const pos = this.playerPlane.node.position;
         // left
         // const bullet1 = instantiate(this.bullet03);
         const bullet1 = PoolManager.instance().getNode(this.bullet03, this.bulletRoot);
         // bullet1.setParent(this.bulletRoot);
-        bullet1.setPosition(pos.x - 2.5, pos.y, pos.z - 7);
+        bullet1.setPosition(pos.x - 1.5, pos.y, pos.z - 7);
         const bulletComp1 = bullet1.getComponent(Bullet);
         bulletComp1.show(this.bulletSpeed, false);
 
         // right
         const bullet2 = PoolManager.instance().getNode(this.bullet03, this.bulletRoot);
         // bullet2.setParent(this.bulletRoot);
-        bullet2.setPosition(pos.x + 2.5, pos.y, pos.z - 7);
+        bullet2.setPosition(pos.x + 1.5, pos.y, pos.z - 7);
         const bulletComp2 = bullet2.getComponent(Bullet);
         bulletComp2.show(this.bulletSpeed, false);
+
+        if(this.playerPlane._selfBulletPower>=2)
+        {
+            const bullet3 = PoolManager.instance().getNode(this.bullet03, this.bulletRoot);
+            bullet3.setPosition(pos.x - 1.5*3, pos.y, pos.z - 7);
+            const bulletComp3 = bullet3.getComponent(Bullet);
+            bulletComp3.show(this.bulletSpeed, false);
+    
+            const bullet4 = PoolManager.instance().getNode(this.bullet03, this.bulletRoot);
+            bullet4.setPosition(pos.x + 1.5*3, pos.y, pos.z - 7);
+            const bulletComp4 = bullet4.getComponent(Bullet);
+            bulletComp4.show(this.bulletSpeed, false);
+        } 
+        if(this.playerPlane._selfBulletPower >=3)
+        {
+            const bullet5 = PoolManager.instance().getNode(this.bullet03, this.bulletRoot);
+            bullet5.setPosition(pos.x - 1.5*5, pos.y, pos.z - 7);
+            const bulletComp5 = bullet5.getComponent(Bullet);
+            bulletComp5.show(this.bulletSpeed, false);
+    
+            const bullet6 = PoolManager.instance().getNode(this.bullet03, this.bulletRoot);
+            bullet6.setPosition(pos.x + 1.5*5, pos.y, pos.z - 7);
+            const bulletComp6 = bullet6.getComponent(Bullet);
+            bulletComp6.show(this.bulletSpeed, false);
+        }
     }
 
     public createPlayerBulletS(){
@@ -235,19 +281,36 @@ export class GameManager extends Component {
         const bulletComp = bullet.getComponent(Bullet);
         bulletComp.show(this.bulletSpeed, false);
 
-        // left
-        const bullet1 = PoolManager.instance().getNode(this.bullet05, this.bulletRoot);
-        // bullet1.setParent(this.bulletRoot);
-        bullet1.setPosition(pos.x - 4, pos.y, pos.z - 7);
-        const bulletComp1 = bullet1.getComponent(Bullet);
-        bulletComp1.show(this.bulletSpeed, false, Constant.Direction.LEFT);
+        if(this.playerPlane._selfBulletPower>=2)
+        {   // left
+            const bullet1 = PoolManager.instance().getNode(this.bullet05, this.bulletRoot);
+            // bullet1.setParent(this.bulletRoot);
+            bullet1.setPosition(pos.x - 2, pos.y, pos.z - 7);
+            const bulletComp1 = bullet1.getComponent(Bullet);
+            bulletComp1.show(this.bulletSpeed, false, Constant.Direction.LEFT);
 
-        // right
-        const bullet2 = PoolManager.instance().getNode(this.bullet05, this.bulletRoot);
-        // bullet2.setParent(this.bulletRoot);
-        bullet2.setPosition(pos.x + 4, pos.y, pos.z - 7);
-        const bulletComp2 = bullet2.getComponent(Bullet);
-        bulletComp2.show(this.bulletSpeed, false, Constant.Direction.RIGHT);
+            // right
+            const bullet2 = PoolManager.instance().getNode(this.bullet05, this.bulletRoot);
+            // bullet2.setParent(this.bulletRoot);
+            bullet2.setPosition(pos.x + 2, pos.y, pos.z - 7);
+            const bulletComp2 = bullet2.getComponent(Bullet);
+            bulletComp2.show(this.bulletSpeed, false, Constant.Direction.RIGHT);
+        }
+        if(this.playerPlane._selfBulletPower>=3)
+        {   //left2
+            const bullet3 = PoolManager.instance().getNode(this.bullet05, this.bulletRoot);
+            // bullet1.setParent(this.bulletRoot);
+            bullet3.setPosition(pos.x - 4, pos.y, pos.z - 7);
+            const bulletComp3 = bullet3.getComponent(Bullet);
+            bulletComp3.show(this.bulletSpeed, false, Constant.Direction.LEFT_2);
+    
+            // right2
+            const bullet4 = PoolManager.instance().getNode(this.bullet05, this.bulletRoot);
+            // bullet2.setParent(this.bulletRoot);
+            bullet4.setPosition(pos.x + 4, pos.y, pos.z - 7);
+            const bulletComp4 = bullet4.getComponent(Bullet);
+            bulletComp4.show(this.bulletSpeed, false, Constant.Direction.RIGHT_2);
+        }
     }
 
     public createEnemyBullet(targetPos: Vec3){
@@ -333,7 +396,7 @@ export class GameManager extends Component {
         let prefab: Prefab = null;
         if(randomProp === Constant.BulletPropType.BULLET_H){
             prefab = this.bulletPropH;
-        } else if(randomProp === Constant.BulletPropType.BULLET_H){
+        } else if(randomProp === Constant.BulletPropType.BULLET_S){
             prefab = this.bulletPropS;
         } else {
             prefab = this.bulletPropM;

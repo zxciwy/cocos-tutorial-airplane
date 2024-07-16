@@ -26,21 +26,23 @@ export class SelfPlane extends Component {
     public blood: Node = null;
     public lifeValue = 5;
     public isDie = false;
+    public _selfBulletPower = Constant.BulletPropPower.LEVEL_1;//cece
+    public _selfBulletType = Constant.BulletPropType.BULLET_M;//cece: 飞机需要记录之前已有的状态。
 
     private _currLife = 0;
     private _audioEffect: AudioSource = null;
 
-    start(){
+    start() {
         this._audioEffect = this.getComponent(AudioSource);
     }
 
 
-    onEnable () {
+    onEnable() {
         const collider = this.getComponent(Collider);
         collider.on('onTriggerEnter', this._onTriggerEnter, this);
     }
 
-    onDisable () {
+    onDisable() {
         const collider = this.getComponent(Collider);
         collider.off('onTriggerEnter', this._onTriggerEnter, this);
     }
@@ -49,33 +51,72 @@ export class SelfPlane extends Component {
     //     // [4]
     // }
 
-    public init(){
+    public init() {
         this._currLife = this.lifeValue;
         this.isDie = false;
         this.explode.active = false;
         this.bloodFace.setScale(1, 1, 1);
     }
 
-    private _onTriggerEnter(event: ITriggerEvent){
-        // some trick to fix "trigger vs trigger problem" in physx
-        if(event.otherCollider.material.friction == 100){
-            return;
-        }
+    private _onTriggerEnter(event: ITriggerEvent) {
+        //ce：注释掉了下面四行。不然会报错，material为null。
+        // // some trick to fix "trigger vs trigger problem" in physx
+        // if(event.otherCollider.material.friction == 100){
+        //     return;
+        // }
 
         const collisionGroup = event.otherCollider.getGroup();
-        if(collisionGroup === Constant.CollisionType.ENEMY_PLANE || collisionGroup === Constant.CollisionType.ENEMY_BULLET){
-            if(this._currLife === this.lifeValue){
+        if (collisionGroup === Constant.CollisionType.ENEMY_PLANE || collisionGroup === Constant.CollisionType.ENEMY_BULLET) {
+            if (this._currLife === this.lifeValue) {
                 this.blood.active = true;
             }
-            this._currLife --;
+            this._currLife--;
             this.bloodFace.setScale(this._currLife / this.lifeValue, 1, 1);
-            if(this._currLife <=0){
+            if (this._currLife <= 0) {
                 this.isDie = true;
                 this._audioEffect.play();
                 this.explode.active = true;
                 this.blood.active = false;
                 console.log('self plane is die');
             }
+        }
+        else //if (collisionGroup === Constant.CollisionType.POWERUP) 
+            { // cece
+            //to do:  upgrade the powerlevel of Bullet;
+            console.log('POWER-UP!')
+            if (event.otherCollider.node.name === 'bulletM') {
+                if (this._selfBulletType === Constant.BulletPropType.BULLET_M) {
+                    this._selfBulletPower = (this._selfBulletPower < 3) ? this._selfBulletPower+1 : Constant.BulletPropPower.LEVEL_3;
+                    console.log('Congraduations!! level up!')
+                }
+                else {
+                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1
+                }
+                console.log('Now your POWERUP M is ', this._selfBulletPower);
+                this._selfBulletType = Constant.BulletPropType.BULLET_M;
+            }
+            else if (event.otherCollider.node.name === 'bulletS') {
+                if (this._selfBulletType === Constant.BulletPropType.BULLET_S) {
+                    this._selfBulletPower = (this._selfBulletPower < 3) ? this._selfBulletPower+1 : Constant.BulletPropPower.LEVEL_3;
+                }
+                else {
+                    console.warn('level 1!')
+                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1
+                }
+                console.log('Now your POWERUP S is ', this._selfBulletPower);
+                this._selfBulletType = Constant.BulletPropType.BULLET_S;
+            }
+            else if (event.otherCollider.node.name === 'bulletH') {
+                if (this._selfBulletType === Constant.BulletPropType.BULLET_H) {
+                    this._selfBulletPower = (this._selfBulletPower < 3) ? this._selfBulletPower+1 : Constant.BulletPropPower.LEVEL_3;
+                }
+                else {
+                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1
+                }
+                this._selfBulletType = Constant.BulletPropType.BULLET_H;
+            }
+            else
+                console.warn('errer BulletType!');
         }
     }
 
