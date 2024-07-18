@@ -7,6 +7,7 @@ import { SelfPlane } from '../plane/SelfPlane';
 import { AudioManager } from './AudioManager';
 import { Constant } from './Constant';
 import { PoolManager } from './PoolManager';
+import { Treasure } from '../treasure/Treasure';
 const { ccclass, property } = _decorator;
 
 /**
@@ -66,7 +67,19 @@ export class GameManager extends Component {
     @property(Prefab)
     public bulletPropS: Prefab = null;
     @property
-    public bulletPropSpeed = 0.3;
+    public bulletPropSpeed = 0.2;
+
+    // treasure
+    @property(Prefab)
+    public itemsGold: Prefab = null;
+    @property(Prefab)
+    public itemsArmor: Prefab = null;
+    @property(Prefab)
+    public itemsWeapon: Prefab = null;
+    @property(Prefab)
+    public itemsMedkit: Prefab = null;
+    @property
+    public treasureSpeed = 0.2;
 
     // ui
     @property(Node)
@@ -75,6 +88,8 @@ export class GameManager extends Component {
     public gameOverPage: Node = null;
     @property(Label)
     public gameScore: Label = null;
+    @property(Label)
+    public gameGold: Label = null; // cece
     @property(Label)
     public gameOverScore: Label = null;
     @property(Animation)
@@ -92,6 +107,7 @@ export class GameManager extends Component {
     private _combinationInterval = Constant.Combination.PLAN1;
     private _bulletType = Constant.BulletPropType.BULLET_M; //private _bulletType = this.playerPlane._selfBulletType;// cece:初始值需要与SelfPlane的BulletType的初始值一致，但是这样会报错。因为PlayerPlane只声明了还真没有初始化？
     private _score = 0;
+    private _gold = 0;
     
 
     start () {
@@ -107,6 +123,7 @@ export class GameManager extends Component {
             this.gameOver();
             return;
         }
+        this.playerPlane.node.on('GoldCountChange',this.addGold,this);//cece:监听到事件‘GoldCountChange'，进行add gold操作。
 
         this._currShootTime += deltaTime;
         if(this._isShooting && this._currShootTime > this.shootTime){
@@ -174,7 +191,9 @@ export class GameManager extends Component {
         this._changePlaneMode();
         this._score = 0;
         this.gameScore.string = this._score.toString();
+        this.gameGold.string = this._gold.toString();//cece
         this.playerPlane.init();
+        this._gold = 0; // cece: test
     }
 
     public gameReStart(){
@@ -202,6 +221,11 @@ export class GameManager extends Component {
     public addScore(){
         this._score ++;
         this.gameScore.string = this._score.toString();
+    }
+
+    public addGold(){//cece:
+        this._gold = this._gold+5;
+        this.gameGold.string = this._gold.toString();
     }
 
     public createPlayerBulletM(){
@@ -391,6 +415,28 @@ export class GameManager extends Component {
         effect.setPosition(pos);
     }
 
+    public createTreasure(){              //cece:0718
+        const randomItems = math.randomRangeInt(1, 5); //cece: randomRangeInt包含min不包含max。  1-4: Gold, Armor, Weapon, Medkit(医疗包)
+        //const randomItems = 1;// 暂时先只实现Gold。
+        let prefab: Prefab = null;
+        if(randomItems === Constant.TreasureType.ITEMS_GOLD){
+            prefab = this.itemsGold;
+        } else if(randomItems === Constant.TreasureType.ITEMS_ARMOR){
+            prefab = this.itemsArmor;
+        } else if(randomItems === Constant.TreasureType.ITEMS_WEAPON){
+            prefab = this.itemsWeapon;
+        } else{
+            prefab = this.itemsMedkit;
+        }
+
+        // const prop = instantiate(prefab);
+        const items = PoolManager.instance().getNode(prefab, this.node);
+        // prop.setParent(this.node);
+        items.setPosition(15, 0, -50);
+        const treasure = items.getComponent(Treasure);
+        treasure.show(this, -this.treasureSpeed);
+    }
+
     public createBulletProp(){
         const randomProp = math.randomRangeInt(1, 4);
         let prefab: Prefab = null;
@@ -434,6 +480,7 @@ export class GameManager extends Component {
     private _modeChanged(){
         this._combinationInterval ++;
         this.createBulletProp();
+        this.createTreasure();//
     }
 
     private _destroyAll(){

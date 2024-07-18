@@ -28,6 +28,10 @@ export class SelfPlane extends Component {
     public isDie = false;
     public _selfBulletPower = Constant.BulletPropPower.LEVEL_1;//cece
     public _selfBulletType = Constant.BulletPropType.BULLET_M;//cece: 飞机需要记录之前已有的状态。
+    public _goldCount = 0;
+
+    private _isArmored = false;
+    private _isEmpowered = false;
 
     private _currLife = 0;
     private _audioEffect: AudioSource = null;
@@ -80,19 +84,18 @@ export class SelfPlane extends Component {
                 console.log('self plane is die');
             }
         }
-        else //if (collisionGroup === Constant.CollisionType.POWERUP) 
-            { // cece
-            //to do:  upgrade the powerlevel of Bullet;
-            console.log('POWER-UP!')
+        else if (collisionGroup === Constant.CollisionType.BULLET_PROP) 
+            { // cece:  upgrade the powerlevel of Bullet;
+            console.log('BulletProp!')
             if (event.otherCollider.node.name === 'bulletM') {
                 if (this._selfBulletType === Constant.BulletPropType.BULLET_M) {
                     this._selfBulletPower = (this._selfBulletPower < 3) ? this._selfBulletPower+1 : Constant.BulletPropPower.LEVEL_3;
-                    console.log('Congraduations!! level up!')
+                    // console.log('Congraduations!! level up!')
                 }
                 else {
-                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1
+                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1;
                 }
-                console.log('Now your POWERUP M is ', this._selfBulletPower);
+                // console.log('Now your POWERUP M is ', this._selfBulletPower);
                 this._selfBulletType = Constant.BulletPropType.BULLET_M;
             }
             else if (event.otherCollider.node.name === 'bulletS') {
@@ -100,10 +103,9 @@ export class SelfPlane extends Component {
                     this._selfBulletPower = (this._selfBulletPower < 3) ? this._selfBulletPower+1 : Constant.BulletPropPower.LEVEL_3;
                 }
                 else {
-                    console.warn('level 1!')
-                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1
+                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1;
                 }
-                console.log('Now your POWERUP S is ', this._selfBulletPower);
+                // console.log('Now your POWERUP S is ', this._selfBulletPower);
                 this._selfBulletType = Constant.BulletPropType.BULLET_S;
             }
             else if (event.otherCollider.node.name === 'bulletH') {
@@ -111,12 +113,48 @@ export class SelfPlane extends Component {
                     this._selfBulletPower = (this._selfBulletPower < 3) ? this._selfBulletPower+1 : Constant.BulletPropPower.LEVEL_3;
                 }
                 else {
-                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1
+                    this._selfBulletPower = Constant.BulletPropPower.LEVEL_1;
                 }
                 this._selfBulletType = Constant.BulletPropType.BULLET_H;
             }
             else
                 console.warn('errer BulletType!');
+        }
+        else //Treasure
+        {
+            console.log('Treasure!!!');
+            switch (event.otherCollider.node.name) {
+                case 'itemsGold':
+                    {
+                        this._goldCount = this._goldCount+5;
+                        this.node.emit('GoldCountChange',this._goldCount);
+                        console.log('gold count:', this._goldCount);
+                        break;
+                    }
+                case 'itemsArmor':
+                    {
+                        this._isArmored = true;
+                        console.log('Armored!');// to be done;
+                        break;
+                    }
+                case 'itmsWeapon':
+                    {
+                        this._isEmpowered = true;
+                        console.log('Enpowered!');// to be done;
+                        break;
+                    }
+                case 'itemsMedkit':
+                    {
+                        if( this._currLife < this.lifeValue)
+                            {
+                                this._currLife ++;
+                                console.log('Life + 1, current life is:', this._currLife);
+                            }
+                        break;
+                    }
+                default:
+                    console.log('not recorded!');
+            }            
         }
     }
 
